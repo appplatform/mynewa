@@ -1,0 +1,1424 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>특허출원서 자동 생성기 | Patent Application Generator</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #1a56db;
+            --primary-dark: #1e40af;
+            --primary-light: #dbeafe;
+            --accent: #f59e0b;
+            --bg: #f0f4f8;
+            --card: #ffffff;
+            --text: #1e293b;
+            --text-light: #64748b;
+            --border: #e2e8f0;
+            --success: #10b981;
+            --danger: #ef4444;
+            --radius: 12px;
+            --shadow: 0 4px 24px rgba(0,0,0,0.08);
+        }
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.7;
+            min-height: 100vh;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, var(--primary) 0%, #7c3aed 100%);
+            color: white;
+            padding: 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 4px 20px rgba(26,86,219,0.3);
+        }
+        .header-inner {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 18px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .header h1 {
+            font-size: 1.5rem;
+            font-weight: 900;
+            letter-spacing: -0.5px;
+        }
+        .header h1 span { color: var(--accent); }
+        .header-badge {
+            background: rgba(255,255,255,0.2);
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        /* Layout */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 24px;
+        }
+
+        /* Steps Navigation */
+        .steps-nav {
+            display: flex;
+            gap: 4px;
+            margin-bottom: 32px;
+            background: var(--card);
+            border-radius: var(--radius);
+            padding: 8px;
+            box-shadow: var(--shadow);
+            overflow-x: auto;
+        }
+        .step-btn {
+            flex: 1;
+            min-width: 120px;
+            padding: 12px 16px;
+            border: none;
+            background: transparent;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: var(--text-light);
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            justify-content: center;
+        }
+        .step-btn:hover { background: var(--primary-light); color: var(--primary); }
+        .step-btn.active {
+            background: var(--primary);
+            color: white;
+            box-shadow: 0 2px 8px rgba(26,86,219,0.3);
+        }
+        .step-btn .step-num {
+            width: 24px; height: 24px;
+            border-radius: 50%;
+            background: rgba(0,0,0,0.1);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.75rem; font-weight: 700;
+        }
+        .step-btn.active .step-num { background: rgba(255,255,255,0.3); }
+        .step-btn.done { color: var(--success); }
+        .step-btn.done .step-num { background: var(--success); color: white; }
+
+        /* Cards */
+        .card {
+            background: var(--card);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 32px;
+            margin-bottom: 24px;
+        }
+        .card-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .card-title .icon {
+            width: 36px; height: 36px;
+            border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.1rem;
+        }
+
+        /* Form elements */
+        .form-group {
+            margin-bottom: 20px;
+        }
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin-bottom: 6px;
+            color: var(--text);
+        }
+        .form-group label .required {
+            color: var(--danger);
+            margin-left: 2px;
+        }
+        .form-group .help {
+            font-size: 0.78rem;
+            color: var(--text-light);
+            margin-bottom: 6px;
+        }
+        input[type="text"], input[type="date"], textarea, select {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 0.95rem;
+            transition: border-color 0.2s;
+            background: #fafbfc;
+        }
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: white;
+        }
+        textarea { resize: vertical; min-height: 100px; }
+
+        .tag-input-wrap {
+            display: flex; flex-wrap: wrap; gap: 8px;
+            padding: 8px 12px;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            background: #fafbfc;
+            cursor: text;
+            min-height: 48px;
+            align-items: center;
+        }
+        .tag-input-wrap:focus-within { border-color: var(--primary); background: white; }
+        .tag-input-wrap input {
+            border: none; background: transparent; padding: 4px;
+            flex: 1; min-width: 120px; font-size: 0.95rem;
+        }
+        .tag-input-wrap input:focus { outline: none; }
+        .tag {
+            background: var(--primary-light);
+            color: var(--primary);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.82rem;
+            font-weight: 600;
+            display: flex; align-items: center; gap: 6px;
+            animation: tagIn 0.2s ease;
+        }
+        @keyframes tagIn { from { transform: scale(0.8); opacity:0; } to { transform: scale(1); opacity:1; } }
+        .tag .remove {
+            cursor: pointer;
+            width: 16px; height: 16px;
+            border-radius: 50%;
+            background: var(--primary);
+            color: white;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.7rem;
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 12px 28px;
+            border: none;
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+            box-shadow: 0 2px 8px rgba(26,86,219,0.3);
+        }
+        .btn-primary:hover { background: var(--primary-dark); transform: translateY(-1px); }
+        .btn-accent {
+            background: var(--accent);
+            color: white;
+        }
+        .btn-accent:hover { background: #d97706; }
+        .btn-outline {
+            background: transparent;
+            color: var(--primary);
+            border: 2px solid var(--primary);
+        }
+        .btn-outline:hover { background: var(--primary-light); }
+        .btn-success { background: var(--success); color: white; }
+        .btn-success:hover { background: #059669; }
+        .btn-danger { background: var(--danger); color: white; }
+        .btn-danger:hover { background: #dc2626; }
+        .btn-lg { padding: 16px 40px; font-size: 1.05rem; }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .btn-group { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 24px; }
+
+        /* Step panels */
+        .step-panel { display: none; }
+        .step-panel.active { display: block; animation: fadeIn 0.3s ease; }
+        @keyframes fadeIn { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+
+        /* Grid */
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; }
+        @media (max-width: 768px) {
+            .grid-2, .grid-3 { grid-template-columns: 1fr; }
+            .steps-nav { flex-wrap: nowrap; }
+        }
+
+        /* File Upload Area */
+        .upload-zone {
+            border: 2px dashed var(--border);
+            border-radius: var(--radius);
+            padding: 32px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: #fafbfc;
+        }
+        .upload-zone:hover, .upload-zone.dragover {
+            border-color: var(--primary);
+            background: var(--primary-light);
+        }
+        .upload-zone .icon { font-size: 2.5rem; margin-bottom: 12px; }
+        .upload-zone .text { color: var(--text-light); font-size: 0.9rem; }
+        .upload-zone .formats { font-size: 0.75rem; color: var(--text-light); margin-top: 8px; }
+
+        .preview-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 12px;
+            margin-top: 16px;
+        }
+        .preview-item {
+            position: relative;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 2px solid var(--border);
+            aspect-ratio: 1;
+            background: #f8f8f8;
+        }
+        .preview-item img, .preview-item video {
+            width: 100%; height: 100%; object-fit: cover;
+        }
+        .preview-item .remove-btn {
+            position: absolute; top: 6px; right: 6px;
+            width: 24px; height: 24px;
+            border-radius: 50%;
+            background: var(--danger);
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-size: 0.8rem;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .preview-item .file-label {
+            position: absolute; bottom: 0; left: 0; right: 0;
+            background: rgba(0,0,0,0.7);
+            color: white;
+            font-size: 0.7rem;
+            padding: 4px 8px;
+            text-overflow: ellipsis;
+            overflow: hidden;
+            white-space: nowrap;
+        }
+
+        /* Canvas Drawing Area */
+        .drawing-area {
+            border: 2px solid var(--border);
+            border-radius: var(--radius);
+            overflow: hidden;
+            background: white;
+        }
+        .drawing-toolbar {
+            display: flex;
+            gap: 8px;
+            padding: 10px 16px;
+            background: #f8fafc;
+            border-bottom: 1px solid var(--border);
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        .drawing-toolbar .separator {
+            width: 1px;
+            height: 28px;
+            background: var(--border);
+            margin: 0 4px;
+        }
+        .tool-btn {
+            width: 36px; height: 36px;
+            border: 2px solid transparent;
+            border-radius: 6px;
+            background: white;
+            cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1rem;
+            transition: all 0.2s;
+        }
+        .tool-btn:hover { border-color: var(--primary-light); background: var(--primary-light); }
+        .tool-btn.active { border-color: var(--primary); background: var(--primary-light); }
+        .tool-btn.color-btn { border-radius: 50%; }
+        .drawing-canvas {
+            display: block;
+            cursor: crosshair;
+            width: 100%;
+            touch-action: none;
+        }
+
+        /* Drawing list */
+        .drawing-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px; margin-top: 16px; }
+        .drawing-thumb {
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            overflow: hidden;
+            position: relative;
+        }
+        .drawing-thumb img { width: 100%; display: block; background: white; }
+        .drawing-thumb .label {
+            padding: 8px 12px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            background: #f8fafc;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+
+        /* Generated Document Preview */
+        .doc-preview {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 48px;
+            max-width: 800px;
+            margin: 0 auto;
+            font-size: 0.92rem;
+            line-height: 2;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+        }
+        .doc-preview h2 {
+            text-align: center;
+            font-size: 1.5rem;
+            margin-bottom: 32px;
+            letter-spacing: 8px;
+            border-bottom: 2px solid #333;
+            padding-bottom: 16px;
+        }
+        .doc-preview h3 {
+            font-size: 1.05rem;
+            margin: 24px 0 12px;
+            padding: 6px 12px;
+            background: #f5f5f5;
+            border-left: 4px solid var(--primary);
+        }
+        .doc-preview .field-row {
+            display: flex; gap: 12px; margin-bottom: 8px;
+            padding: 4px 0;
+        }
+        .doc-preview .field-label {
+            font-weight: 700;
+            min-width: 140px;
+            color: #555;
+        }
+        .doc-preview .field-value { flex: 1; }
+        .doc-preview .drawing-section img {
+            max-width: 100%;
+            border: 1px solid #ddd;
+            margin: 8px 0;
+        }
+
+        /* Loading overlay */
+        .loading-overlay {
+            display: none;
+            position: fixed; top:0; left:0; right:0; bottom:0;
+            background: rgba(255,255,255,0.9);
+            z-index: 9999;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        .loading-overlay.show { display: flex; }
+        .spinner {
+            width: 48px; height: 48px;
+            border: 4px solid var(--border);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .loading-overlay .msg {
+            margin-top: 16px;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        /* Tooltip */
+        .info-tip {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 18px; height: 18px;
+            border-radius: 50%;
+            background: var(--text-light);
+            color: white;
+            font-size: 0.65rem;
+            font-weight: 700;
+            cursor: help;
+            position: relative;
+            margin-left: 4px;
+        }
+        .info-tip:hover::after {
+            content: attr(data-tip);
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #333;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 400;
+            white-space: nowrap;
+            z-index: 10;
+            max-width: 280px;
+            white-space: normal;
+        }
+
+        /* Print styles */
+        @media print {
+            .header, .steps-nav, .btn-group, .no-print { display: none !important; }
+            .container { padding: 0; }
+            .card { box-shadow: none; border: none; padding: 0; }
+            .doc-preview { box-shadow: none; border: none; padding: 20px; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="header">
+    <div class="header-inner">
+        <h1>&#x1f4cb; 특허출원서 <span>자동 생성기</span></h1>
+        <div class="header-badge">Patent Application Generator v1.0</div>
+    </div>
+</div>
+
+<!-- Main Container -->
+<div class="container">
+
+    <!-- Step Navigation -->
+    <div class="steps-nav" id="stepsNav">
+        <button class="step-btn active" data-step="1">
+            <span class="step-num">1</span> 기본 정보
+        </button>
+        <button class="step-btn" data-step="2">
+            <span class="step-num">2</span> 발명 내용
+        </button>
+        <button class="step-btn" data-step="3">
+            <span class="step-num">3</span> 도면 작성
+        </button>
+        <button class="step-btn" data-step="4">
+            <span class="step-num">4</span> 이미지/동영상
+        </button>
+        <button class="step-btn" data-step="5">
+            <span class="step-num">5</span> 출원서 생성
+        </button>
+    </div>
+
+    <!-- ======================== STEP 1: 기본 정보 ======================== -->
+    <div class="step-panel active" id="step1">
+        <div class="card">
+            <div class="card-title">
+                <div class="icon" style="background:#dbeafe;color:var(--primary);">&#x1f4dd;</div>
+                기본 정보 입력
+            </div>
+
+            <div class="grid-2">
+                <div class="form-group">
+                    <label>발명의 명칭 <span class="required">*</span></label>
+                    <input type="text" id="inventionTitle" placeholder="예: 인공지능 기반 자동 번역 시스템">
+                </div>
+                <div class="form-group">
+                    <label>출원 구분</label>
+                    <select id="appType">
+                        <option value="특허출원">특허출원</option>
+                        <option value="실용신안출원">실용신안출원</option>
+                        <option value="디자인출원">디자인출원</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>키워드 입력 <span class="required">*</span></label>
+                <div class="help">핵심 키워드를 입력하고 Enter를 누르세요. 키워드를 기반으로 출원서가 자동 생성됩니다.</div>
+                <div class="tag-input-wrap" id="keywordWrap">
+                    <input type="text" id="keywordInput" placeholder="키워드 입력 후 Enter...">
+                </div>
+            </div>
+
+            <div class="grid-2">
+                <div class="form-group">
+                    <label>출원인 (성명/회사명) <span class="required">*</span></label>
+                    <input type="text" id="applicantName" placeholder="홍길동 / (주)테크놀로지">
+                </div>
+                <div class="form-group">
+                    <label>출원인 주소</label>
+                    <input type="text" id="applicantAddr" placeholder="서울특별시 강남구...">
+                </div>
+            </div>
+
+            <div class="grid-2">
+                <div class="form-group">
+                    <label>발명자 성명 <span class="required">*</span></label>
+                    <input type="text" id="inventorName" placeholder="발명자 이름">
+                </div>
+                <div class="form-group">
+                    <label>출원일</label>
+                    <input type="date" id="filingDate">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>기술 분야</label>
+                <select id="techField">
+                    <option value="">-- 선택하세요 --</option>
+                    <option value="AI/머신러닝">AI / 머신러닝</option>
+                    <option value="IoT/센서">IoT / 센서</option>
+                    <option value="소프트웨어/앱">소프트웨어 / 앱</option>
+                    <option value="하드웨어/기계">하드웨어 / 기계</option>
+                    <option value="바이오/의료">바이오 / 의료</option>
+                    <option value="화학/소재">화학 / 소재</option>
+                    <option value="에너지/환경">에너지 / 환경</option>
+                    <option value="통신/네트워크">통신 / 네트워크</option>
+                    <option value="기타">기타</option>
+                </select>
+            </div>
+
+            <div class="btn-group" style="justify-content:flex-end;">
+                <button class="btn btn-primary" onclick="goStep(2)">다음 단계 &rarr;</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ======================== STEP 2: 발명 내용 ======================== -->
+    <div class="step-panel" id="step2">
+        <div class="card">
+            <div class="card-title">
+                <div class="icon" style="background:#fef3c7;color:#d97706;">&#x1f4a1;</div>
+                발명 상세 내용
+            </div>
+
+            <div class="form-group">
+                <label>발명의 배경 및 목적 <span class="info-tip" data-tip="해당 기술분야의 기존 문제점과 본 발명이 해결하고자 하는 과제를 기술합니다.">?</span></label>
+                <textarea id="background" rows="5" placeholder="본 발명은 종래 기술의 문제점을 해결하기 위해..."></textarea>
+            </div>
+
+            <div class="form-group">
+                <label>발명의 상세 설명 <span class="required">*</span> <span class="info-tip" data-tip="발명의 구성, 동작 원리, 작용 효과를 상세히 기술합니다.">?</span></label>
+                <textarea id="description" rows="8" placeholder="본 발명의 실시예에 따르면...&#10;&#10;아이디어를 간략히 입력하면 자동으로 상세 설명이 생성됩니다."></textarea>
+            </div>
+
+            <div class="form-group">
+                <label>청구 범위 <span class="info-tip" data-tip="보호받고자 하는 발명의 범위를 기술합니다.">?</span></label>
+                <textarea id="claims" rows="6" placeholder="[청구항 1]&#10;~ 을 포함하는 것을 특징으로 하는 장치.&#10;&#10;[청구항 2]&#10;제1항에 있어서, ..."></textarea>
+            </div>
+
+            <div class="form-group">
+                <label>기대 효과</label>
+                <textarea id="effects" rows="4" placeholder="본 발명에 의하면 다음과 같은 효과를 얻을 수 있다..."></textarea>
+            </div>
+
+            <div class="form-group">
+                <label>요약서</label>
+                <div class="help">비워두면 자동 생성됩니다.</div>
+                <textarea id="abstract" rows="4" placeholder="자동 생성 시 비워두세요."></textarea>
+            </div>
+
+            <div class="btn-group" style="justify-content:space-between;">
+                <button class="btn btn-outline" onclick="goStep(1)">&larr; 이전</button>
+                <div style="display:flex;gap:12px;">
+                    <button class="btn btn-accent" onclick="autoGenerate()">&#x2728; AI 자동 생성</button>
+                    <button class="btn btn-primary" onclick="goStep(3)">다음 단계 &rarr;</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ======================== STEP 3: 도면 작성 ======================== -->
+    <div class="step-panel" id="step3">
+        <div class="card">
+            <div class="card-title">
+                <div class="icon" style="background:#d1fae5;color:#059669;">&#x270f;&#xfe0f;</div>
+                도면 작성 (Drawing)
+            </div>
+            <p style="color:var(--text-light);margin-bottom:16px;font-size:0.88rem;">
+                발명의 구조, 흐름도, 시스템 구성도 등을 직접 그리거나 자동 생성할 수 있습니다.
+            </p>
+
+            <div class="drawing-area">
+                <div class="drawing-toolbar">
+                    <button class="tool-btn active" data-tool="pen" title="펜">&#x270f;&#xfe0f;</button>
+                    <button class="tool-btn" data-tool="line" title="직선">&#x2571;</button>
+                    <button class="tool-btn" data-tool="rect" title="사각형">&#x25a1;</button>
+                    <button class="tool-btn" data-tool="circle" title="원">&#x25cb;</button>
+                    <button class="tool-btn" data-tool="arrow" title="화살표">&#x2192;</button>
+                    <button class="tool-btn" data-tool="text" title="텍스트">T</button>
+                    <div class="separator"></div>
+                    <button class="tool-btn" data-tool="eraser" title="지우개">&#x1f6ab;</button>
+                    <div class="separator"></div>
+                    <input type="color" id="drawColor" value="#000000" style="width:32px;height:32px;border:none;cursor:pointer;border-radius:4px;">
+                    <select id="drawWidth" style="padding:4px 8px;border-radius:4px;border:1px solid var(--border);font-size:0.82rem;">
+                        <option value="1">1px</option>
+                        <option value="2" selected>2px</option>
+                        <option value="3">3px</option>
+                        <option value="5">5px</option>
+                        <option value="8">8px</option>
+                    </select>
+                    <div class="separator"></div>
+                    <button class="tool-btn" onclick="clearCanvas()" title="전체 지우기">&#x1f5d1;</button>
+                    <button class="tool-btn" onclick="undoCanvas()" title="되돌리기">&#x21a9;</button>
+                    <div style="flex:1;"></div>
+                    <button class="btn btn-accent" style="padding:6px 16px;font-size:0.82rem;" onclick="autoDrawDiagram()">&#x2728; 자동 도면 생성</button>
+                </div>
+                <canvas id="drawingCanvas" class="drawing-canvas" width="900" height="500"></canvas>
+            </div>
+
+            <div style="margin-top:12px;display:flex;gap:12px;align-items:center;">
+                <input type="text" id="drawingLabel" placeholder="도면 번호/제목 (예: [도 1] 시스템 구성도)" style="flex:1;">
+                <button class="btn btn-success" onclick="saveDrawing()" style="padding:8px 20px;">도면 저장</button>
+            </div>
+
+            <div class="drawing-list" id="drawingList"></div>
+
+            <div class="btn-group" style="justify-content:space-between;margin-top:24px;">
+                <button class="btn btn-outline" onclick="goStep(2)">&larr; 이전</button>
+                <button class="btn btn-primary" onclick="goStep(4)">다음 단계 &rarr;</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ======================== STEP 4: 이미지/동영상 업로드 ======================== -->
+    <div class="step-panel" id="step4">
+        <div class="card">
+            <div class="card-title">
+                <div class="icon" style="background:#fce7f3;color:#db2777;">&#x1f4f7;</div>
+                제품 이미지 / 동영상 첨부
+            </div>
+            <p style="color:var(--text-light);margin-bottom:20px;font-size:0.88rem;">
+                제품 사진, 솔루션 이미지, 시제품 동영상 등 실제 자료를 첨부하세요. 출원서에 참고 자료로 포함됩니다.
+            </p>
+
+            <!-- 제품 이미지 -->
+            <div style="margin-bottom:28px;">
+                <h4 style="margin-bottom:12px;">&#x1f4f8; 제품 / 솔루션 이미지</h4>
+                <div class="upload-zone" id="imageUploadZone">
+                    <div class="icon">&#x1f5bc;</div>
+                    <div class="text">이미지를 드래그하거나 클릭하여 업로드</div>
+                    <div class="formats">지원 형식: JPG, PNG, GIF, BMP, WebP (최대 10MB)</div>
+                    <input type="file" id="imageInput" multiple accept="image/*" style="display:none;">
+                </div>
+                <div class="preview-grid" id="imagePreview"></div>
+            </div>
+
+            <!-- 동영상 -->
+            <div style="margin-bottom:28px;">
+                <h4 style="margin-bottom:12px;">&#x1f3ac; 제품 / 솔루션 동영상</h4>
+                <div class="upload-zone" id="videoUploadZone">
+                    <div class="icon">&#x1f4f9;</div>
+                    <div class="text">동영상을 드래그하거나 클릭하여 업로드</div>
+                    <div class="formats">지원 형식: MP4, WebM, AVI, MOV (최대 100MB)</div>
+                    <input type="file" id="videoInput" multiple accept="video/*" style="display:none;">
+                </div>
+                <div class="preview-grid" id="videoPreview"></div>
+            </div>
+
+            <!-- 기타 첨부 -->
+            <div>
+                <h4 style="margin-bottom:12px;">&#x1f4ce; 기타 참고 자료</h4>
+                <div class="upload-zone" id="docUploadZone">
+                    <div class="icon">&#x1f4c4;</div>
+                    <div class="text">참고 문서, 설계도 등을 업로드</div>
+                    <div class="formats">지원 형식: PDF, DOC, DOCX, XLS, PPT (최대 20MB)</div>
+                    <input type="file" id="docInput" multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx" style="display:none;">
+                </div>
+                <div class="preview-grid" id="docPreview"></div>
+            </div>
+
+            <div class="btn-group" style="justify-content:space-between;margin-top:24px;">
+                <button class="btn btn-outline" onclick="goStep(3)">&larr; 이전</button>
+                <button class="btn btn-primary" onclick="goStep(5)">출원서 생성 &rarr;</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ======================== STEP 5: 출원서 생성/미리보기 ======================== -->
+    <div class="step-panel" id="step5">
+        <div class="card no-print">
+            <div class="card-title">
+                <div class="icon" style="background:#ede9fe;color:#7c3aed;">&#x1f4c4;</div>
+                특허출원서 미리보기 및 다운로드
+            </div>
+            <div class="btn-group" style="margin-top:0;margin-bottom:24px;">
+                <button class="btn btn-primary btn-lg" onclick="generateDocument()">&#x1f4cb; 출원서 생성</button>
+                <button class="btn btn-success" onclick="downloadHTML()">&#x1f4e5; HTML 다운로드</button>
+                <button class="btn btn-accent" onclick="window.print()">&#x1f5a8; 인쇄 / PDF 저장</button>
+                <button class="btn btn-outline" onclick="goStep(1)">&larr; 수정하기</button>
+            </div>
+        </div>
+
+        <div class="doc-preview" id="docPreviewArea">
+            <p style="text-align:center;color:var(--text-light);padding:60px 0;">
+                위 "출원서 생성" 버튼을 클릭하면 여기에 미리보기가 표시됩니다.
+            </p>
+        </div>
+    </div>
+
+</div>
+
+<!-- Loading Overlay -->
+<div class="loading-overlay" id="loadingOverlay">
+    <div class="spinner"></div>
+    <div class="msg" id="loadingMsg">출원서를 생성하고 있습니다...</div>
+</div>
+
+<script>
+// ==================== STATE ====================
+const state = {
+    keywords: [],
+    drawings: [],
+    images: [],
+    videos: [],
+    docs: [],
+    currentTool: 'pen',
+    isDrawing: false,
+    canvasHistory: [],
+    historyIndex: -1,
+};
+
+// ==================== STEP NAVIGATION ====================
+function goStep(num) {
+    document.querySelectorAll('.step-panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.step-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('step' + num).classList.add('active');
+    document.querySelector(`.step-btn[data-step="${num}"]`).classList.add('active');
+
+    // mark previous steps as done
+    document.querySelectorAll('.step-btn').forEach(b => {
+        const s = parseInt(b.dataset.step);
+        if (s < num) b.classList.add('done');
+    });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+
+    if (num === 5) generateDocument();
+}
+
+document.querySelectorAll('.step-btn').forEach(btn => {
+    btn.addEventListener('click', () => goStep(parseInt(btn.dataset.step)));
+});
+
+// ==================== KEYWORDS / TAGS ====================
+const keywordInput = document.getElementById('keywordInput');
+const keywordWrap = document.getElementById('keywordWrap');
+
+keywordInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && keywordInput.value.trim()) {
+        e.preventDefault();
+        addKeyword(keywordInput.value.trim());
+        keywordInput.value = '';
+    }
+});
+
+function addKeyword(kw) {
+    if (state.keywords.includes(kw)) return;
+    state.keywords.push(kw);
+    renderKeywords();
+}
+
+function removeKeyword(idx) {
+    state.keywords.splice(idx, 1);
+    renderKeywords();
+}
+
+function renderKeywords() {
+    const tags = keywordWrap.querySelectorAll('.tag');
+    tags.forEach(t => t.remove());
+    state.keywords.forEach((kw, i) => {
+        const tag = document.createElement('span');
+        tag.className = 'tag';
+        tag.innerHTML = `${kw} <span class="remove" onclick="removeKeyword(${i})">&times;</span>`;
+        keywordWrap.insertBefore(tag, keywordInput);
+    });
+}
+
+// ==================== AUTO GENERATE (AI Simulation) ====================
+function autoGenerate() {
+    const title = document.getElementById('inventionTitle').value || '발명';
+    const kws = state.keywords.length > 0 ? state.keywords.join(', ') : '기술';
+    const field = document.getElementById('techField').value || '기술';
+
+    showLoading('AI가 출원서 내용을 생성하고 있습니다...');
+
+    setTimeout(() => {
+        document.getElementById('background').value =
+`본 발명은 ${field} 분야에 관한 것으로, 보다 상세하게는 ${title}에 관한 것이다.
+
+종래 기술에서는 ${kws} 관련 분야에서 다음과 같은 문제점이 있었다:
+1) 기존 시스템의 처리 효율이 낮아 대규모 데이터 처리에 한계가 있었다.
+2) 사용자 편의성이 부족하여 전문 지식 없이는 활용이 어려웠다.
+3) 기존 방식은 정확도와 신뢰성 면에서 개선의 여지가 있었다.
+
+본 발명은 상기와 같은 문제점을 해결하기 위하여 안출된 것으로, ${kws}을(를) 활용하여 보다 효율적이고 정확한 ${title}을(를) 제공하는 것을 목적으로 한다.`;
+
+        document.getElementById('description').value =
+`본 발명의 일 실시예에 따른 ${title}은(는) 다음과 같이 구성된다.
+
+[구성 요소]
+본 시스템은 크게 입력부, 처리부, 출력부로 구성되며, 각 구성 요소의 상세 설명은 다음과 같다.
+
+1. 입력부: ${kws}와(과) 관련된 데이터를 수집하고 전처리하는 모듈로서, 다양한 형태의 입력 데이터를 표준화된 형식으로 변환한다.
+
+2. 처리부: 입력부로부터 전달받은 데이터를 기반으로 핵심 알고리즘을 수행하는 모듈이다. 본 발명의 특징적 구성인 ${kws} 기반 처리 엔진을 포함하며, 이를 통해 종래 기술 대비 향상된 성능을 달성한다.
+
+3. 출력부: 처리부의 결과를 사용자에게 제공하는 모듈로서, 시각화 및 리포트 생성 기능을 포함한다.
+
+[동작 원리]
+상기 ${title}의 동작 과정을 단계별로 설명하면 다음과 같다:
+
+단계 S100: 입력부가 ${kws} 관련 원시 데이터를 수집한다.
+단계 S200: 수집된 데이터를 전처리하여 처리부로 전달한다.
+단계 S300: 처리부가 본 발명의 고유 알고리즘을 적용하여 데이터를 분석/처리한다.
+단계 S400: 처리 결과를 출력부를 통해 사용자에게 제공한다.
+
+[작용 효과]
+상기와 같이 구성된 본 발명에 의하면, ${kws}을(를) 효과적으로 활용하여 기존 대비 처리 속도 및 정확도가 크게 향상된다.`;
+
+        document.getElementById('claims').value =
+`[청구항 1]
+${kws}을(를) 이용한 ${title}에 있어서,
+입력 데이터를 수집하고 전처리하는 입력부;
+상기 전처리된 데이터를 기반으로 ${kws} 알고리즘을 수행하는 처리부; 및
+상기 처리부의 결과를 출력하는 출력부;
+를 포함하는 것을 특징으로 하는 ${title}.
+
+[청구항 2]
+제1항에 있어서,
+상기 처리부는 ${kws}에 기반한 데이터 분석 엔진을 포함하며,
+상기 데이터 분석 엔진은 입력 데이터의 특성을 자동으로 판별하여 최적의 처리 방법을 선택하는 것을 특징으로 하는 ${title}.
+
+[청구항 3]
+제1항에 있어서,
+상기 출력부는 처리 결과를 시각화하여 표시하는 디스플레이 모듈을 더 포함하는 것을 특징으로 하는 ${title}.`;
+
+        document.getElementById('effects').value =
+`본 발명에 의하면, 다음과 같은 효과를 얻을 수 있다.
+
+첫째, ${kws}을(를) 활용한 새로운 처리 방식을 통해 기존 대비 처리 효율이 크게 향상된다.
+
+둘째, 자동화된 데이터 전처리 및 분석을 통해 사용자의 전문 지식 없이도 손쉽게 활용할 수 있다.
+
+셋째, 다양한 형태의 입력 데이터에 대응할 수 있어 확장성이 우수하다.
+
+넷째, 시각화 기능을 통해 처리 결과를 직관적으로 파악할 수 있어 의사결정에 기여한다.`;
+
+        document.getElementById('abstract').value =
+`본 발명은 ${title}에 관한 것으로, ${kws}을(를) 활용하여 데이터를 효율적으로 수집, 처리 및 분석하는 시스템과 방법에 관한 것이다. 본 발명에 따르면, 입력부에서 원시 데이터를 수집하고 전처리한 후, 처리부의 ${kws} 기반 엔진이 핵심 분석을 수행하며, 출력부가 결과를 시각화하여 제공한다. 이를 통해 종래 기술 대비 처리 효율과 정확도를 크게 향상시킬 수 있다.`;
+
+        hideLoading();
+    }, 1500);
+}
+
+// ==================== DRAWING CANVAS ====================
+const canvas = document.getElementById('drawingCanvas');
+const ctx = canvas.getContext('2d');
+let startX, startY, snapshot;
+
+function resizeCanvas() {
+    const parent = canvas.parentElement;
+    canvas.width = parent.clientWidth;
+    canvas.height = 500;
+    redrawFromHistory();
+}
+window.addEventListener('resize', resizeCanvas);
+setTimeout(resizeCanvas, 100);
+
+// Save initial state
+function saveCanvasState() {
+    if (state.historyIndex < state.canvasHistory.length - 1) {
+        state.canvasHistory = state.canvasHistory.slice(0, state.historyIndex + 1);
+    }
+    state.canvasHistory.push(canvas.toDataURL());
+    state.historyIndex = state.canvasHistory.length - 1;
+}
+
+function redrawFromHistory() {
+    if (state.canvasHistory.length > 0 && state.historyIndex >= 0) {
+        const img = new Image();
+        img.onload = () => { ctx.clearRect(0,0,canvas.width,canvas.height); ctx.drawImage(img,0,0); };
+        img.src = state.canvasHistory[state.historyIndex];
+    }
+}
+
+function undoCanvas() {
+    if (state.historyIndex > 0) {
+        state.historyIndex--;
+        redrawFromHistory();
+    } else {
+        ctx.clearRect(0,0,canvas.width,canvas.height);
+    }
+}
+
+function clearCanvas() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    saveCanvasState();
+}
+
+// Tool selection
+document.querySelectorAll('.tool-btn[data-tool]').forEach(btn => {
+    btn.addEventListener('click', () => {
+        document.querySelectorAll('.tool-btn[data-tool]').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        state.currentTool = btn.dataset.tool;
+    });
+});
+
+function getPos(e) {
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    if (e.touches) {
+        return { x: (e.touches[0].clientX - rect.left) * scaleX, y: (e.touches[0].clientY - rect.top) * scaleY };
+    }
+    return { x: (e.clientX - rect.left) * scaleX, y: (e.clientY - rect.top) * scaleY };
+}
+
+canvas.addEventListener('mousedown', startDraw);
+canvas.addEventListener('mousemove', drawing);
+canvas.addEventListener('mouseup', endDraw);
+canvas.addEventListener('mouseleave', endDraw);
+canvas.addEventListener('touchstart', (e) => { e.preventDefault(); startDraw(e); });
+canvas.addEventListener('touchmove', (e) => { e.preventDefault(); drawing(e); });
+canvas.addEventListener('touchend', endDraw);
+
+function startDraw(e) {
+    state.isDrawing = true;
+    const pos = getPos(e);
+    startX = pos.x;
+    startY = pos.y;
+
+    if (state.currentTool === 'text') {
+        const text = prompt('텍스트를 입력하세요:');
+        if (text) {
+            ctx.font = `${parseInt(document.getElementById('drawWidth').value) * 6 + 10}px 'Noto Sans KR', sans-serif`;
+            ctx.fillStyle = document.getElementById('drawColor').value;
+            ctx.fillText(text, startX, startY);
+            saveCanvasState();
+        }
+        state.isDrawing = false;
+        return;
+    }
+
+    snapshot = ctx.getImageData(0, 0, canvas.width, canvas.height);
+
+    if (state.currentTool === 'pen' || state.currentTool === 'eraser') {
+        ctx.beginPath();
+        ctx.moveTo(startX, startY);
+    }
+}
+
+function drawing(e) {
+    if (!state.isDrawing) return;
+    const pos = getPos(e);
+    const color = document.getElementById('drawColor').value;
+    const width = parseInt(document.getElementById('drawWidth').value);
+
+    if (state.currentTool === 'pen') {
+        ctx.strokeStyle = color;
+        ctx.lineWidth = width;
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        ctx.lineTo(pos.x, pos.y);
+        ctx.stroke();
+    } else if (state.currentTool === 'eraser') {
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = width * 5;
+        ctx.lineCap = 'round';
+        ctx.lineTo(pos.x, pos.y);
+        ctx.stroke();
+    } else {
+        ctx.putImageData(snapshot, 0, 0);
+        ctx.strokeStyle = color;
+        ctx.lineWidth = width;
+        ctx.lineCap = 'round';
+
+        if (state.currentTool === 'line') {
+            ctx.beginPath();
+            ctx.moveTo(startX, startY);
+            ctx.lineTo(pos.x, pos.y);
+            ctx.stroke();
+        } else if (state.currentTool === 'rect') {
+            ctx.beginPath();
+            ctx.strokeRect(startX, startY, pos.x - startX, pos.y - startY);
+        } else if (state.currentTool === 'circle') {
+            const rx = Math.abs(pos.x - startX) / 2;
+            const ry = Math.abs(pos.y - startY) / 2;
+            const cx = startX + (pos.x - startX) / 2;
+            const cy = startY + (pos.y - startY) / 2;
+            ctx.beginPath();
+            ctx.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2);
+            ctx.stroke();
+        } else if (state.currentTool === 'arrow') {
+            drawArrow(ctx, startX, startY, pos.x, pos.y, color, width);
+        }
+    }
+}
+
+function endDraw() {
+    if (state.isDrawing) {
+        state.isDrawing = false;
+        saveCanvasState();
+    }
+}
+
+function drawArrow(ctx, x1, y1, x2, y2, color, width) {
+    const headLen = 15;
+    const angle = Math.atan2(y2 - y1, x2 - x1);
+    ctx.beginPath();
+    ctx.moveTo(x1, y1);
+    ctx.lineTo(x2, y2);
+    ctx.lineTo(x2 - headLen * Math.cos(angle - Math.PI / 6), y2 - headLen * Math.sin(angle - Math.PI / 6));
+    ctx.moveTo(x2, y2);
+    ctx.lineTo(x2 - headLen * Math.cos(angle + Math.PI / 6), y2 - headLen * Math.sin(angle + Math.PI / 6));
+    ctx.strokeStyle = color;
+    ctx.lineWidth = width;
+    ctx.stroke();
+}
+
+// Auto draw diagram
+function autoDrawDiagram() {
+    const title = document.getElementById('inventionTitle').value || '시스템';
+    const kws = state.keywords.length > 0 ? state.keywords : ['입력', '처리', '출력'];
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    const w = canvas.width;
+    const h = canvas.height;
+
+    // Title
+    ctx.font = "bold 18px 'Noto Sans KR', sans-serif";
+    ctx.fillStyle = '#333';
+    ctx.textAlign = 'center';
+    ctx.fillText(`[도면] ${title} 구성도`, w / 2, 35);
+
+    // Draw system box
+    ctx.strokeStyle = '#1a56db';
+    ctx.lineWidth = 2;
+    ctx.setLineDash([]);
+
+    // Main system boundary
+    const sysX = 80, sysY = 60, sysW = w - 160, sysH = h - 120;
+    ctx.strokeStyle = '#999';
+    ctx.setLineDash([8, 4]);
+    ctx.strokeRect(sysX, sysY, sysW, sysH);
+    ctx.setLineDash([]);
+    ctx.font = "12px 'Noto Sans KR'";
+    ctx.fillStyle = '#999';
+    ctx.textAlign = 'left';
+    ctx.fillText(title + ' 시스템', sysX + 10, sysY + 18);
+
+    // Draw keyword boxes as components
+    const numBoxes = Math.min(kws.length, 6);
+    const cols = Math.min(numBoxes, 3);
+    const rows = Math.ceil(numBoxes / cols);
+    const boxW = 180;
+    const boxH = 70;
+    const gapX = (sysW - cols * boxW) / (cols + 1);
+    const gapY = (sysH - 40 - rows * boxH) / (rows + 1);
+    const boxes = [];
+
+    for (let i = 0; i < numBoxes; i++) {
+        const col = i % cols;
+        const row = Math.floor(i / cols);
+        const bx = sysX + gapX + col * (boxW + gapX);
+        const by = sysY + 40 + gapY + row * (boxH + gapY);
+
+        // Box
+        ctx.fillStyle = '#dbeafe';
+        ctx.strokeStyle = '#1a56db';
+        ctx.lineWidth = 2;
+        roundRect(ctx, bx, by, boxW, boxH, 8, true, true);
+
+        // Label
+        ctx.font = "bold 14px 'Noto Sans KR', sans-serif";
+        ctx.fillStyle = '#1e40af';
+        ctx.textAlign = 'center';
+        ctx.fillText(kws[i], bx + boxW / 2, by + boxH / 2 + 5);
+
+        // Number
+        ctx.font = "11px 'Noto Sans KR'";
+        ctx.fillStyle = '#64748b';
+        ctx.fillText(`(${100 + (i + 1) * 10})`, bx + boxW / 2, by + boxH / 2 + 22);
+
+        boxes.push({ x: bx, y: by, w: boxW, h: boxH });
+    }
+
+    // Draw arrows between boxes
+    ctx.strokeStyle = '#64748b';
+    ctx.lineWidth = 1.5;
+    for (let i = 0; i < boxes.length - 1; i++) {
+        const a = boxes[i];
+        const b = boxes[i + 1];
+        const sameRow = Math.floor(i / cols) === Math.floor((i + 1) / cols);
+        if (sameRow) {
+            drawArrow(ctx, a.x + a.w, a.y + a.h / 2, b.x, b.y + b.h / 2, '#64748b', 1.5);
+        } else {
+            const fromX = a.x + a.w / 2;
+            const fromY = a.y + a.h;
+            const toX = b.x + b.w / 2;
+            const toY = b.y;
+            ctx.beginPath();
+            ctx.moveTo(fromX, fromY);
+            ctx.lineTo(fromX, (fromY + toY) / 2);
+            ctx.lineTo(toX, (fromY + toY) / 2);
+            ctx.lineTo(toX, toY);
+            ctx.stroke();
+            // arrowhead
+            const headLen = 10;
+            ctx.beginPath();
+            ctx.moveTo(toX - 5, toY - headLen);
+            ctx.lineTo(toX, toY);
+            ctx.lineTo(toX + 5, toY - headLen);
+            ctx.stroke();
+        }
+    }
+
+    saveCanvasState();
+}
+
+function roundRect(ctx, x, y, w, h, r, fill, stroke) {
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.lineTo(x + w - r, y);
+    ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+    ctx.lineTo(x + w, y + h - r);
+    ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+    ctx.lineTo(x + r, y + h);
+    ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+    ctx.lineTo(x, y + r);
+    ctx.quadraticCurveTo(x, y, x + r, y);
+    ctx.closePath();
+    if (fill) ctx.fill();
+    if (stroke) ctx.stroke();
+}
+
+// Save drawing
+function saveDrawing() {
+    const label = document.getElementById('drawingLabel').value || `[도 ${state.drawings.length + 1}]`;
+    const dataUrl = canvas.toDataURL('image/png');
+    state.drawings.push({ label, dataUrl });
+    renderDrawings();
+    document.getElementById('drawingLabel').value = '';
+    clearCanvas();
+}
+
+function removeDrawing(idx) {
+    state.drawings.splice(idx, 1);
+    renderDrawings();
+}
+
+function renderDrawings() {
+    const list = document.getElementById('drawingList');
+    list.innerHTML = state.drawings.map((d, i) => `
+        <div class="drawing-thumb">
+            <img src="${d.dataUrl}" alt="${d.label}">
+            <div class="label">
+                ${d.label}
+                <button onclick="removeDrawing(${i})" style="background:none;border:none;color:var(--danger);cursor:pointer;font-size:0.9rem;">&#x1f5d1;</button>
+            </div>
+        </div>
+    `).join('');
+}
+
+// ==================== FILE UPLOADS ====================
+function setupUpload(zoneId, inputId, previewId, fileArray, type) {
+    const zone = document.getElementById(zoneId);
+    const input = document.getElementById(inputId);
+
+    zone.addEventListener('click', () => input.click());
+    zone.addEventListener('dragover', (e) => { e.preventDefault(); zone.classList.add('dragover'); });
+    zone.addEventListener('dragleave', () => zone.classList.remove('dragover'));
+    zone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        zone.classList.remove('dragover');
+        handleFiles(e.dataTransfer.files, fileArray, previewId, type);
+    });
+    input.addEventListener('change', () => {
+        handleFiles(input.files, fileArray, previewId, type);
+        input.value = '';
+    });
+}
+
+function handleFiles(files, fileArray, previewId, type) {
+    Array.from(files).forEach(file => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            fileArray.push({ name: file.name, data: e.target.result, type: file.type });
+            renderPreviews(fileArray, previewId, type);
+        };
+        reader.readAsDataURL(file);
+    });
+}
+
+function renderPreviews(fileArray, previewId, type) {
+    const container = document.getElementById(previewId);
+    container.innerHTML = fileArray.map((f, i) => {
+        let content = '';
+        if (type === 'image') {
+            content = `<img src="${f.data}" alt="${f.name}">`;
+        } else if (type === 'video') {
+            content = `<video src="${f.data}" muted></video>`;
+        } else {
+            content = `<div style="display:flex;align-items:center;justify-content:center;height:100%;font-size:2rem;">&#x1f4c4;</div>`;
+        }
+        return `
+            <div class="preview-item">
+                ${content}
+                <button class="remove-btn" onclick="removeFile('${type}', ${i})">&times;</button>
+                <div class="file-label">${f.name}</div>
+            </div>`;
+    }).join('');
+}
+
+function removeFile(type, idx) {
+    if (type === 'image') { state.images.splice(idx, 1); renderPreviews(state.images, 'imagePreview', 'image'); }
+    else if (type === 'video') { state.videos.splice(idx, 1); renderPreviews(state.videos, 'videoPreview', 'video'); }
+    else { state.docs.splice(idx, 1); renderPreviews(state.docs, 'docPreview', 'doc'); }
+}
+
+setupUpload('imageUploadZone', 'imageInput', 'imagePreview', state.images, 'image');
+setupUpload('videoUploadZone', 'videoInput', 'videoPreview', state.videos, 'video');
+setupUpload('docUploadZone', 'docInput', 'docPreview', state.docs, 'doc');
+
+// ==================== GENERATE DOCUMENT ====================
+function generateDocument() {
+    const title = document.getElementById('inventionTitle').value || '(미입력)';
+    const appType = document.getElementById('appType').value;
+    const applicant = document.getElementById('applicantName').value || '(미입력)';
+    const addr = document.getElementById('applicantAddr').value || '';
+    const inventor = document.getElementById('inventorName').value || '(미입력)';
+    const date = document.getElementById('filingDate').value || new Date().toISOString().slice(0,10);
+    const field = document.getElementById('techField').value || '';
+    const background = document.getElementById('background').value || '';
+    const description = document.getElementById('description').value || '';
+    const claims = document.getElementById('claims').value || '';
+    const effects = document.getElementById('effects').value || '';
+    const abstract = document.getElementById('abstract').value || '';
+
+    let drawingsHtml = '';
+    if (state.drawings.length > 0) {
+        drawingsHtml = `<h3>【도면】</h3>` +
+            state.drawings.map(d => `
+                <div class="drawing-section">
+                    <p><strong>${d.label}</strong></p>
+                    <img src="${d.dataUrl}" style="max-width:100%;border:1px solid #ddd;">
+                </div>`).join('');
+    }
+
+    let imagesHtml = '';
+    if (state.images.length > 0) {
+        imagesHtml = `<h3>【참고 이미지】</h3>
+            <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;">` +
+            state.images.map(img => `
+                <div style="border:1px solid #ddd;border-radius:4px;overflow:hidden;">
+                    <img src="${img.data}" style="width:100%;display:block;">
+                    <div style="padding:4px 8px;font-size:0.8rem;background:#f8f8f8;">${img.name}</div>
+                </div>`).join('') + '</div>';
+    }
+
+    let videosHtml = '';
+    if (state.videos.length > 0) {
+        videosHtml = `<h3>【참고 동영상】</h3>` +
+            state.videos.map(v => `
+                <div style="margin:12px 0;">
+                    <video src="${v.data}" controls style="max-width:100%;border:1px solid #ddd;border-radius:4px;"></video>
+                    <div style="font-size:0.8rem;color:#666;margin-top:4px;">${v.name}</div>
+                </div>`).join('');
+    }
+
+    const html = `
+        <h2>${appType} 명 세 서</h2>
+
+        <h3>【서지사항】</h3>
+        <div class="field-row"><div class="field-label">출원 구분</div><div class="field-value">${appType}</div></div>
+        <div class="field-row"><div class="field-label">발명의 명칭</div><div class="field-value"><strong>${title}</strong></div></div>
+        <div class="field-row"><div class="field-label">출원인</div><div class="field-value">${applicant}</div></div>
+        ${addr ? `<div class="field-row"><div class="field-label">출원인 주소</div><div class="field-value">${addr}</div></div>` : ''}
+        <div class="field-row"><div class="field-label">발명자</div><div class="field-value">${inventor}</div></div>
+        <div class="field-row"><div class="field-label">출원일</div><div class="field-value">${date}</div></div>
+        ${field ? `<div class="field-row"><div class="field-label">기술 분야</div><div class="field-value">${field}</div></div>` : ''}
+        ${state.keywords.length > 0 ? `<div class="field-row"><div class="field-label">키워드</div><div class="field-value">${state.keywords.join(', ')}</div></div>` : ''}
+
+        ${background ? `<h3>【발명의 배경 및 목적】</h3><div style="white-space:pre-line;">${background}</div>` : ''}
+
+        ${description ? `<h3>【발명의 상세한 설명】</h3><div style="white-space:pre-line;">${description}</div>` : ''}
+
+        ${claims ? `<h3>【특허청구범위】</h3><div style="white-space:pre-line;">${claims}</div>` : ''}
+
+        ${effects ? `<h3>【기대 효과】</h3><div style="white-space:pre-line;">${effects}</div>` : ''}
+
+        ${drawingsHtml}
+
+        <h3>【도면의 간단한 설명】</h3>
+        <div style="white-space:pre-line;">${state.drawings.length > 0 ?
+            state.drawings.map(d => `${d.label}: 본 발명의 실시예에 따른 구성을 나타낸 도면이다.`).join('\n') :
+            '(첨부 도면 없음)'
+        }</div>
+
+        ${imagesHtml}
+        ${videosHtml}
+
+        ${abstract ? `<h3>【요약서】</h3><div style="white-space:pre-line;">${abstract}</div>` : ''}
+
+        <hr style="margin:32px 0;">
+        <div style="text-align:center;font-size:0.8rem;color:#999;">
+            본 문서는 특허출원서 자동 생성기에 의해 생성되었습니다.<br>
+            생성일: ${new Date().toLocaleString('ko-KR')}
+        </div>
+    `;
+
+    document.getElementById('docPreviewArea').innerHTML = html;
+}
+
+// ==================== DOWNLOAD ====================
+function downloadHTML() {
+    generateDocument();
+    const content = document.getElementById('docPreviewArea').innerHTML;
+    const fullHtml = `<!DOCTYPE html><html lang="ko"><head><meta charset="UTF-8"><title>특허출원서</title>
+    <style>body{font-family:'Noto Sans KR',sans-serif;max-width:800px;margin:40px auto;padding:20px;line-height:2;color:#333;}
+    h2{text-align:center;letter-spacing:8px;border-bottom:2px solid #333;padding-bottom:16px;}
+    h3{font-size:1.05rem;margin:24px 0 12px;padding:6px 12px;background:#f5f5f5;border-left:4px solid #1a56db;}
+    .field-row{display:flex;gap:12px;margin-bottom:8px;}.field-label{font-weight:700;min-width:140px;color:#555;}.field-value{flex:1;}
+    img{max-width:100%;} video{max-width:100%;}</style></head><body>${content}</body></html>`;
+
+    const blob = new Blob([fullHtml], { type: 'text/html;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `특허출원서_${document.getElementById('inventionTitle').value || '문서'}_${new Date().toISOString().slice(0,10)}.html`;
+    a.click();
+    URL.revokeObjectURL(url);
+}
+
+// ==================== UTILS ====================
+function showLoading(msg) {
+    document.getElementById('loadingMsg').textContent = msg || '처리 중...';
+    document.getElementById('loadingOverlay').classList.add('show');
+}
+function hideLoading() {
+    document.getElementById('loadingOverlay').classList.remove('show');
+}
+
+// Set today's date as default
+document.getElementById('filingDate').value = new Date().toISOString().slice(0, 10);
+
+// Initial canvas state
+setTimeout(() => { saveCanvasState(); }, 200);
+</script>
+
+</body>
+</html>
