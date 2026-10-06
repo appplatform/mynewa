@@ -1,0 +1,45 @@
+name: coco-market
+
+on:
+  push:
+    paths: ['coco-market/**', '.github/workflows/coco-market.yml']
+  pull_request:
+    paths: ['coco-market/**', '.github/workflows/coco-market.yml']
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: coco-market
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: coco
+          POSTGRES_PASSWORD: coco
+          POSTGRES_DB: coco_test
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U coco" --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      TEST_DATABASE_URL: postgresql://coco:coco@localhost:5432/coco_test
+      CI: 'true'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.28.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: coco-market/pnpm-lock.yaml
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm typecheck
+      - run: pnpm lint:compliance
+      - run: pnpm guard:red
+      - run: pnpm --filter @coco/core test
+      - run: pnpm --filter @coco/api test
+      - run: pnpm --filter @coco/e2e exec playwright install --with-deps chromium
+      - run: pnpm --filter @coco/e2e test

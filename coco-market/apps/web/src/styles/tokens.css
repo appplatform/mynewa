@@ -1,0 +1,55 @@
+/*
+ * CO-CO Market 디자인 토큰
+ * 방향: 공공 서비스의 명료함 + 동네 가게의 따뜻함. 가격 등락색(빨강/초록 차트), 네온, 그라디언트 히어로를 쓰지 않는다.
+ * 레이아웃: 상단 바 + 단일 콘텐츠 열(최대 1120px), 모바일에서는 하단 탭 바.
+ */
+:root {
+  /* color */
+  --paper: #f6f4ef;        /* 바탕: 한지 느낌의 따뜻한 회백색 */
+  --surface: #ffffff;
+  --surface-2: #efece4;
+  --ink: #1b2433;          /* 본문: 먹색에 가까운 남색 */
+  --ink-2: #4a5568;
+  --ink-3: #7a8494;
+  --line: #ddd8cc;
+  --brand: #1f6b54;        /* 상생 녹색 (단 하나의 포인트) */
+  --brand-ink: #ffffff;
+  --brand-soft: #e2efe9;
+  --focus: #2f7fd1;
+  /* semantic — 포인트 색과 별개 */
+  --ok: #2e7d4f;  --ok-bg: #e4f2e9;
+  --warn: #8a5a00; --warn-bg: #fbf0d6;
+  --bad: #a3261f;  --bad-bg: #fbe4e1;
+  --info: #285c8f; --info-bg: #e3edf8;
+
+  /* type */
+  --font: 'Pretendard Variable', Pretendard, -apple-system, 'Apple SD Gothic Neo', 'Malgun Gothic', system-ui, sans-serif;
+  --mono: ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
+  --fs-xs: 12px; --fs-sm: 13.5px; --fs-md: 15px; --fs-lg: 18px; --fs-xl: 22px; --fs-2xl: 28px; --fs-3xl: 36px;
+
+  /* space (4px grid) */
+  --s1: 4px; --s2: 8px; --s3: 12px; --s4: 16px; --s5: 20px; --s6: 24px; --s8: 32px; --s10: 40px; --s12: 48px;
+
+  --radius-sm: 6px; --radius: 10px; --radius-lg: 16px;
+  --shadow: 0 1px 2px rgb(27 36 51 / 6%), 0 4px 16px rgb(27 36 51 / 6%);
+  --ease: cubic-bezier(.2,.7,.2,1);
+  --maxw: 1120px;
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --paper: #12161d; --surface: #1a2029; --surface-2: #222a35; --ink: #e8ebf0; --ink-2: #b4bcc8; --ink-3: #8691a0;
+    --line: #2e3744; --brand: #5cc39f; --brand-ink: #0f1a16; --brand-soft: #1b3a30; --focus: #7fb6ee;
+    --ok: #7fd3a0; --ok-bg: #18342a; --warn: #f0c060; --warn-bg: #3a2e12; --bad: #ff8a80; --bad-bg: #3d1c1a; --info: #8cbcf0; --info-bg: #1b2c40;
+    --shadow: 0 1px 2px rgb(0 0 0 / 30%), 0 4px 16px rgb(0 0 0 / 25%);
+    color-scheme: dark;
+  }
+}
+:root[data-theme='dark'] {
+  --paper: #12161d; --surface: #1a2029; --surface-2: #222a35; --ink: #e8ebf0; --ink-2: #b4bcc8; --ink-3: #8691a0;
+  --line: #2e3744; --brand: #5cc39f; --brand-ink: #0f1a16; --brand-soft: #1b3a30; --focus: #7fb6ee;
+  --ok: #7fd3a0; --ok-bg: #18342a; --warn: #f0c060; --warn-bg: #3a2e12; --bad: #ff8a80; --bad-bg: #3d1c1a; --info: #8cbcf0; --info-bg: #1b2c40;
+  --shadow: 0 1px 2px rgb(0 0 0 / 30%), 0 4px 16px rgb(0 0 0 / 25%);
+  color-scheme: dark;
+}

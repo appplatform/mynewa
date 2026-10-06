@@ -1,0 +1,132 @@
+/* 운영 콘솔 전용 스타일. 색은 tokens.css 변수만 쓴다. */
+
+.admin-tabs {
+  display: flex;
+  gap: var(--s1);
+  overflow-x: auto;
+  border-bottom: 1px solid var(--line);
+  scrollbar-width: thin;
+  margin-inline: calc(var(--s4) * -1);
+  padding-inline: var(--s4);
+}
+.admin-tab {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s2);
+  min-height: 44px;
+  padding: 0 var(--s3);
+  border: 0;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  background: transparent;
+  color: var(--ink-3);
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.admin-tab:hover { color: var(--ink); }
+.admin-tab[aria-selected='true'] { color: var(--brand); border-bottom-color: var(--brand); }
+.admin-badge {
+  display: inline-grid;
+  place-items: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: var(--surface-2);
+  color: var(--ink-2);
+  font-size: var(--fs-xs);
+  font-variant-numeric: tabular-nums;
+}
+.admin-badge.has { background: var(--warn-bg); color: var(--warn); }
+.admin-tab[aria-selected='true'] .admin-badge.has { background: var(--brand-soft); color: var(--brand); }
+
+.admin-panel { display: grid; gap: var(--s6); min-width: 0; }
+.admin-intro { align-items: flex-start; }
+.admin-intro h2 { font-size: var(--fs-lg); }
+.admin-flash { grid-template-columns: minmax(0, 1fr) auto; align-items: start; }
+
+.admin-list { display: grid; gap: var(--s4); }
+.admin-card { display: grid; gap: var(--s4); }
+.admin-card h3 { font-size: var(--fs-md); }
+.admin-sub { display: grid; gap: var(--s2); }
+.admin-sub > h4 { font-size: var(--fs-sm); color: var(--ink-2); font-weight: 650; }
+
+.admin-dl { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: var(--s1) var(--s3); margin: 0; font-size: var(--fs-sm); }
+.admin-dl dt { color: var(--ink-3); }
+.admin-dl dd { margin: 0; min-width: 0; }
+
+.admin-ul { margin: 0; padding: 0; list-style: none; display: grid; gap: var(--s2); font-size: var(--fs-sm); }
+.admin-ul > li { display: grid; gap: 2px; padding: var(--s2) var(--s3); background: var(--surface-2); border-radius: var(--radius-sm); min-width: 0; }
+
+.admin-pre {
+  margin: 0;
+  white-space: pre-wrap;
+  font-family: var(--font);
+  font-size: var(--fs-sm);
+  background: var(--surface-2);
+  border-radius: var(--radius-sm);
+  padding: var(--s3);
+  max-height: 220px;
+  overflow: auto;
+}
+
+.admin-form-grid { display: grid; gap: var(--s4); grid-template-columns: repeat(auto-fill, minmax(min(100%, 220px), 1fr)); }
+.admin-form-grid .span-all { grid-column: 1 / -1; }
+.admin-actions { display: flex; flex-wrap: wrap; gap: var(--s2); align-items: center; }
+
+.hash { font-family: var(--mono); font-size: var(--fs-xs); word-break: break-all; }
+.admin-trunc { display: block; max-width: 260px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.table tfoot td { font-weight: 700; background: var(--surface-2); border-top: 1px solid var(--line); border-bottom: 0; }
+.table td.nowrap, .table th.nowrap { white-space: nowrap; }
+
+/* 스위치 (AMBER flag 전용) */
+.admin-switch { display: inline-flex; align-items: center; gap: var(--s2); font-size: var(--fs-sm); font-weight: 600; cursor: pointer; }
+.admin-switch input {
+  appearance: none;
+  position: relative;
+  flex: none;
+  width: 44px;
+  height: 26px;
+  margin: 0;
+  border-radius: 999px;
+  background: var(--line);
+  cursor: pointer;
+  transition: background .15s var(--ease);
+}
+.admin-switch input::before {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  transition: transform .15s var(--ease);
+}
+.admin-switch input:checked { background: var(--brand); }
+.admin-switch input:checked::before { transform: translateX(18px); }
+.admin-switch input:disabled { opacity: .5; cursor: not-allowed; }
+@media (prefers-reduced-motion: reduce) { .admin-switch input, .admin-switch input::before { transition: none; } }
+
+/* RED: 스위치 자체가 없음을 보여 준다 */
+.admin-noswitch {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s1);
+  padding: 2px 10px;
+  border: 1px dashed var(--bad);
+  border-radius: 999px;
+  color: var(--bad);
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  white-space: nowrap;
+}
+.admin-gate-red td { background: color-mix(in srgb, var(--bad-bg) 45%, transparent); }
+
+.admin-roles { display: flex; flex-wrap: wrap; gap: var(--s1) var(--s3); }
+.admin-roles .check { white-space: nowrap; }
