@@ -5,7 +5,7 @@ import { audit, op, requireAdult, requireUser, zId, type Ctx } from '../op';
 import type { Payout } from '../types';
 
 export const MIN_PAYOUT_KRW = 1_000;
-const APPROVALS_REQUIRED = 2;
+export const APPROVALS_REQUIRED = 2;
 
 /** 분쟁 중인 IP의 권리자(대표·공동)는 정산이 보류된다. */
 export async function holdReason(ctx: Ctx, userId: string): Promise<string | null> {

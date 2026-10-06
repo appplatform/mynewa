@@ -50,7 +50,7 @@ export const GATES: GateEntry[] = [
   { no: 10, feature: '1+2 증정(Tri-Split) + 고정가 30,000원', level: 'RED', reason: '신규 매수 자금으로 기존 보유자 회수를 충당', alternative: '폐기' },
   { no: 11, feature: 'IPU 영구 저작료 분배·Co-DAO 배당', level: 'RED', reason: '투자계약증권 요건에 근접', alternative: '정식 인가 경로(Phase 4)' },
   { no: 12, feature: '미래 수익률 시뮬레이션 공개', level: 'RED', reason: '확정·고수익 암시 표시', alternative: '과거 집계치만 공개' },
-  { no: 13, feature: '에스크로 가치 보증 표현', level: 'RED', reason: '원금 보장 약정으로 해석될 수 있음', alternative: '예치 현황 사실 공개' },
+  { no: 13, feature: '에스크로 가치 보증 표현', level: 'RED', reason: '예치금을 지켜 준다는 약정으로 해석될 수 있음', alternative: '예치 현황 사실 공개' },
   { no: 14, feature: '미션 대행(Bounty Delegation)', level: 'RED', reason: '본인 활동 요건 형해화', alternative: '폐기' },
   { no: 15, feature: '구매 승급·하위 양성 승급·오버라이딩', level: 'RED', reason: '방문판매법상 다단계 요건', alternative: '폐기' },
 ];

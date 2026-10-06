@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import { cloneElement, isValidElement, useId, type ReactNode } from 'react';
 import { Link } from 'react-router';
 import type { ClientError } from '../api';
 
@@ -62,12 +62,19 @@ export function Stat({ label, value, hint }: { label: string; value: ReactNode; 
 }
 
 export function Field({ label, hint, children }: { label: string; hint?: ReactNode; children: ReactNode }) {
+  const hintId = useId();
+  // 힌트는 레이블 밖에 두고 aria-describedby로 연결한다(스크린리더가 이름과 설명을 구분해 읽음).
+  const child = hint && isValidElement<{ 'aria-describedby'?: string }>(children)
+    ? cloneElement(children, { 'aria-describedby': hintId })
+    : children;
   return (
-    <label className="field">
-      <span>{label}</span>
-      {children}
-      {hint && <small>{hint}</small>}
-    </label>
+    <div className="field">
+      <label className="field">
+        <span>{label}</span>
+        {child}
+      </label>
+      {hint && <small id={hintId}>{hint}</small>}
+    </div>
   );
 }
 
@@ -85,7 +92,7 @@ export function ScopeLine({ buys, notBuys }: { buys: ReactNode; notBuys: ReactNo
 export function Gate({ ok, need, children }: { ok: boolean; need: 'login' | 'role'; children: ReactNode }) {
   if (ok) return <>{children}</>;
   return need === 'login' ? (
-    <Empty title="로그인이 필요합니다" action={<Link className="btn btn-primary" to="/login">로그인</Link>}>
+    <Empty title="로그인이 필요합니다" action={<Link className="btn btn-primary" to={`/login?next=${encodeURIComponent(location.hash.replace(/^#/, '') || '/')}`}>로그인</Link>}>
       이 화면은 로그인한 회원만 볼 수 있어요.
     </Empty>
   ) : (

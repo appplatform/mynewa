@@ -17,3 +17,4 @@ export * from './policy/tier';
 export { USAGE_LABEL } from './services/license';
 export { IP_TYPES, USAGES, EVIDENCE_KINDS } from './services/studio';
 export { QUEST_KINDS } from './services/quests';
+export { MIN_PAYOUT_KRW, APPROVALS_REQUIRED } from './services/wallet';
